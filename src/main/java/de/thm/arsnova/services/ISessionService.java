@@ -78,6 +78,8 @@ public interface ISessionService {
 
 	List<SessionInfo> getMyPublicPoolSessionsInfo();
 
+	List<Session> getCourseSessions(User user);
+
 	List<SessionInfo> getMyVisitedSessionsInfo(int offset, int limit);
 
 	SessionInfo importSession(ImportExportSession session);

@@ -20,9 +20,11 @@ package de.thm.arsnova.controller;
 import de.thm.arsnova.connector.client.ConnectorClient;
 import de.thm.arsnova.connector.model.Course;
 import de.thm.arsnova.connector.model.UserRole;
+import de.thm.arsnova.entities.Session;
 import de.thm.arsnova.entities.User;
 import de.thm.arsnova.exceptions.NotImplementedException;
 import de.thm.arsnova.exceptions.UnauthorizedException;
+import de.thm.arsnova.services.ISessionService;
 import de.thm.arsnova.services.IUserService;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,9 @@ public class CourseController extends AbstractController {
 
 	@Autowired
 	private IUserService userService;
+
+	@Autowired
+	private ISessionService sessionService;
 
 	@RequestMapping(value = "/mycourses", method = RequestMethod.GET)
 	public List<Course> myCourses(
@@ -82,6 +87,17 @@ public class CourseController extends AbstractController {
 		}
 
 		return result;
+	}
+
+	@RequestMapping(value = "/mycoursesessions", method = RequestMethod.GET)
+	public final List<Session> myCourseSessions() {
+		final User currentUser = userService.getCurrentUser();
+
+		if (currentUser == null || currentUser.getUsername() == null) {
+			throw new UnauthorizedException();
+		}
+
+		return sessionService.getCourseSessions(currentUser);
 	}
 
 	private static class CourseNameComperator implements Comparator<Course>, Serializable {

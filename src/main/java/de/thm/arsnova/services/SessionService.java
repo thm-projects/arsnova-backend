@@ -39,6 +39,7 @@ import de.thm.arsnova.events.StatusSessionEvent;
 import de.thm.arsnova.exceptions.BadRequestException;
 import de.thm.arsnova.exceptions.ForbiddenException;
 import de.thm.arsnova.exceptions.NotFoundException;
+import de.thm.arsnova.exceptions.NotImplementedException;
 import de.thm.arsnova.exceptions.PayloadTooLargeException;
 import de.thm.arsnova.exceptions.UnauthorizedException;
 import org.slf4j.Logger;
@@ -52,6 +53,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -253,7 +255,20 @@ public class SessionService implements ISessionService, ApplicationEventPublishe
 	@Override
 	@PreAuthorize("isAuthenticated()")
 	public List<Session> getMyVisitedSessions(final int offset, final int limit) {
-		return databaseDao.getMyVisitedSessions(userService.getCurrentUser(), offset, limit);
+		User user = userService.getCurrentUser();
+		List<Session> sessions = databaseDao.getMyVisitedSessions(user, offset, limit);
+
+		if (null != connectorClient) {
+			for (Session session : getCourseSessions(user)) {
+				if (!sessions.contains(session)) {
+					sessions.add(session);
+
+				}
+			}
+			Collections.sort(sessions, new SessionNameComparator());
+		}
+
+		return sessions;
 	}
 
 	@Override
@@ -316,6 +331,18 @@ public class SessionService implements ISessionService, ApplicationEventPublishe
 			return keyword;
 		}
 		return generateKeyword();
+	}
+
+	@Override
+	public List<Session> getCourseSessions(User user) {
+		if (connectorClient == null) {
+			throw new NotImplementedException();
+		}
+
+		final List<Course> courses = connectorClient.getCourses(user.getUsername()).getCourse();
+		List<Session> sessions = databaseDao.getCourseSessions(courses);
+
+		return sessions;
 	}
 
 	@Override
