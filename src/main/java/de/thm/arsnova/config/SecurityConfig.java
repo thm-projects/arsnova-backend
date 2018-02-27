@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -342,6 +343,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	public LdapAuthenticationProvider ldap2AuthenticationProvider() {
+		if (!ldap2Enabled) {
+			return null;
+		}
 		LdapAuthenticationProvider ldapAuthenticationProvider = new LdapAuthenticationProvider(ldap2Authenticator(), ldapAuthoritiesPopulator());
 		ldapAuthenticationProvider.setUserDetailsContextMapper(customLdap2UserDetailsMapper());
 
@@ -349,6 +353,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
+	@Lazy
 	public LdapContextSource ldap2ContextSource() {
 		DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(ldap2Url);
 		/* TODO: implement support for LDAP bind using manager credentials */
@@ -362,6 +367,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
+	@Lazy
 	public LdapAuthenticator ldap2Authenticator() {
 		BindAuthenticator authenticator = new BindAuthenticator(ldap2ContextSource());
 		authenticator.setUserAttributes(new String[] {ldap2UserIdAttr});
@@ -377,6 +383,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
+	@Lazy
 	public LdapUserDetailsMapper customLdap2UserDetailsMapper() {
 		logger.debug("ldap2UserIdAttr: {}", ldap2UserIdAttr);
 
