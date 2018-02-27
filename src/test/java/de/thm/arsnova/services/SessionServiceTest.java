@@ -33,6 +33,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,7 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -67,15 +68,24 @@ public class SessionServiceTest {
 	@Autowired
 	private StubDatabaseDao databaseDao;
 
-	private void setAuthenticated(final boolean isAuthenticated, final String username) {
+	private void setAuthenticated(final boolean isAuthenticated, final String username, final boolean creator) {
 		if (isAuthenticated) {
-			final List<GrantedAuthority> ga = new ArrayList<>();
+			final List<GrantedAuthority> ga;
+			if (creator) {
+				ga = AuthorityUtils.createAuthorityList("ROLE_SESSION_CREATOR");
+			} else {
+				ga = Collections.emptyList();
+			}
 			final UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, "secret", ga);
 			SecurityContextHolder.getContext().setAuthentication(token);
 			userService.setUserAuthenticated(isAuthenticated, username);
 		} else {
 			userService.setUserAuthenticated(isAuthenticated);
 		}
+	}
+
+	private void setAuthenticated(final boolean isAuthenticated, final String username) {
+		setAuthenticated(isAuthenticated, username, false);
 	}
 
 	@Before
@@ -126,7 +136,21 @@ public class SessionServiceTest {
 
 	@Test
 	public void testShouldSaveSession() {
-		setAuthenticated(true, "ptsr00");
+		setAuthenticated(true, "ptsr00", true);
+
+		final Session session = new Session();
+		session.setActive(true);
+		session.setCreator("ptsr00");
+		session.setKeyword("11111111");
+		session.setName("TestSessionX");
+		session.setShortName("TSX");
+		sessionService.saveSession(session);
+		assertNotNull(sessionService.getSession("11111111"));
+	}
+
+	@Test(expected = AccessDeniedException.class)
+	public void testShouldNotSaveSession() {
+		setAuthenticated(true, "ptsr00", false);
 
 		final Session session = new Session();
 		session.setActive(true);

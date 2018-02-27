@@ -269,7 +269,7 @@ public class SessionService implements ISessionService, ApplicationEventPublishe
 	}
 
 	@Override
-	@PreAuthorize("isAuthenticated()")
+	@PreAuthorize("isAuthenticated() and hasRole('SESSION_CREATOR')")
 	public Session saveSession(final Session session) {
 		if (connectorClient != null && session.getCourseId() != null) {
 			if (!connectorClient.getMembership(
