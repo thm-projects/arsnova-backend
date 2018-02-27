@@ -18,6 +18,7 @@
 package de.thm.arsnova;
 
 import org.jasig.cas.client.validation.Assertion;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.cas.userdetails.AbstractCasAssertionUserDetailsService;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,6 +27,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -33,11 +35,15 @@ import java.util.List;
  */
 @Service
 public class CasUserDetailsService extends AbstractCasAssertionUserDetailsService {
+	@Value("${security.cas.allowed-roles:speaker,student}") private String[] casRoles;
 
 	@Override
 	protected UserDetails loadUserDetails(final Assertion assertion) {
 		final List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 		grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+		if (Arrays.asList(casRoles).contains("speaker")) {
+			grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_SESSION_CREATOR"));
+		}
 
 		return new User(
 				assertion.getPrincipal().getName(),

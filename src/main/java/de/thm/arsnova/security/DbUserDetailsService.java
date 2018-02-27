@@ -22,6 +22,7 @@ import de.thm.arsnova.entities.DbUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -31,6 +32,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -40,6 +42,8 @@ import java.util.List;
 public class DbUserDetailsService implements UserDetailsService {
 	@Autowired
 	private IDatabaseDao dao;
+
+	@Value("${security.user-db.allowed-roles:speaker,student}") private String[] dbAuthRoles;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(DbUserDetailsService.class);
@@ -56,6 +60,9 @@ public class DbUserDetailsService implements UserDetailsService {
 		final List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 		grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
 		grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_DB_USER"));
+		if (Arrays.asList(dbAuthRoles).contains("speaker")) {
+			grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_SESSION_CREATOR"));
+		}
 
 		return new User(uid, dbUser.getPassword(),
 				null == dbUser.getActivationKey(), true, true, true,

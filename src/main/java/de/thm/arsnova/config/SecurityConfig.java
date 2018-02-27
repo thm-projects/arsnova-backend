@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
@@ -107,6 +108,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Value("${security.ldap.manager-user-dn:}") private String ldapManagerUserDn;
 	@Value("${security.ldap.manager-password:}") private String ldapManagerPassword;
 
+	@Value("${security.ldap2.enabled:false}") private boolean ldap2Enabled;
+	@Value("${security.ldap2.url:}") private String ldap2Url;
+	@Value("${security.ldap2.user-id-attr:}") private String ldap2UserIdAttr;
+	@Value("${security.ldap2.user-dn-pattern:}") private String ldap2UserDn;
+	@Value("${security.ldap2.user-search-base:}") private String ldap2SearchBase;
+	@Value("${security.ldap2.user-search-filter:}") private String ldap2SearchFilter;
+	@Value("${security.ldap2.manager-user-dn:}") private String ldap2ManagerUserDn;
+	@Value("${security.ldap2.manager-password:}") private String ldap2ManagerPassword;
+
 	@Value("${security.cas.enabled}") private boolean casEnabled;
 	@Value("${security.cas-server-url}") private String casUrl;
 
@@ -126,6 +136,29 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	private void init() {
 		if ("".equals(apiPath)) {
 			apiPath = servletContext.getContextPath();
+		}
+		if (ldap2Enabled) {
+			if (ldap2Url.isEmpty()) {
+				ldap2Url = ldapUrl;
+			}
+			if (ldap2UserIdAttr.isEmpty()) {
+				ldap2UserIdAttr = ldapUserIdAttr;
+			}
+			if (ldap2UserDn.isEmpty()) {
+				ldap2UserDn = ldapUserDn;
+			}
+			if (ldap2SearchBase.isEmpty()) {
+				ldap2SearchBase = ldapSearchBase;
+			}
+			if (ldap2SearchFilter.isEmpty()) {
+				ldap2SearchFilter = ldapSearchFilter;
+			}
+			if (ldap2ManagerUserDn.isEmpty()) {
+				ldap2ManagerUserDn = ldapManagerUserDn;
+			}
+			if (ldap2ManagerPassword.isEmpty()) {
+				ldap2ManagerPassword = ldapManagerPassword;
+			}
 		}
 	}
 
@@ -159,6 +192,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		if (ldapEnabled) {
 			providers.add("ldap");
 			auth.authenticationProvider(ldapAuthenticationProvider());
+		}
+		if (ldap2Enabled) {
+			providers.add("ldap2");
+			auth.authenticationProvider(ldap2AuthenticationProvider());
 		}
 		if (casEnabled) {
 			providers.add("cas");
@@ -255,6 +292,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	// LDAP Authentication Configuration
 
 	@Bean
+	@Primary
 	public LdapAuthenticationProvider ldapAuthenticationProvider() {
 		LdapAuthenticationProvider ldapAuthenticationProvider = new LdapAuthenticationProvider(ldapAuthenticator(), ldapAuthoritiesPopulator());
 		ldapAuthenticationProvider.setUserDetailsContextMapper(customLdapUserDetailsMapper());
@@ -297,9 +335,52 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	public LdapUserDetailsMapper customLdapUserDetailsMapper() {
-		logger.debug("ldapUserIdAttr: {}", ldapUserIdAttr);
+		logger.debug("ldap2UserIdAttr: {}", ldapUserIdAttr);
 
 		return new CustomLdapUserDetailsMapper(ldapUserIdAttr);
+	}
+
+	@Bean
+	public LdapAuthenticationProvider ldap2AuthenticationProvider() {
+		LdapAuthenticationProvider ldapAuthenticationProvider = new LdapAuthenticationProvider(ldap2Authenticator(), ldapAuthoritiesPopulator());
+		ldapAuthenticationProvider.setUserDetailsContextMapper(customLdap2UserDetailsMapper());
+
+		return ldapAuthenticationProvider;
+	}
+
+	@Bean
+	public LdapContextSource ldap2ContextSource() {
+		DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(ldap2Url);
+		/* TODO: implement support for LDAP bind using manager credentials */
+		if (!"".equals(ldap2ManagerUserDn) && !"".equals(ldap2ManagerPassword)) {
+			logger.debug("ldapManagerUserDn: {}", ldap2ManagerUserDn);
+			contextSource.setUserDn(ldap2ManagerUserDn);
+			contextSource.setPassword(ldap2ManagerPassword);
+		}
+
+		return contextSource;
+	}
+
+	@Bean
+	public LdapAuthenticator ldap2Authenticator() {
+		BindAuthenticator authenticator = new BindAuthenticator(ldap2ContextSource());
+		authenticator.setUserAttributes(new String[] {ldap2UserIdAttr});
+		if (!"".equals(ldap2SearchFilter)) {
+			logger.debug("ldap2Search: {} {}", ldap2SearchBase, ldap2SearchFilter);
+			authenticator.setUserSearch(new FilterBasedLdapUserSearch(ldap2SearchBase, ldap2SearchFilter, ldap2ContextSource()));
+		} else {
+			logger.debug("ldap2UserDn: {}", ldap2UserDn);
+			authenticator.setUserDnPatterns(new String[] {ldap2UserDn});
+		}
+
+		return authenticator;
+	}
+
+	@Bean
+	public LdapUserDetailsMapper customLdap2UserDetailsMapper() {
+		logger.debug("ldap2UserIdAttr: {}", ldap2UserIdAttr);
+
+		return new CustomLdapUserDetailsMapper(ldap2UserIdAttr);
 	}
 
 	// CAS Authentication Configuration

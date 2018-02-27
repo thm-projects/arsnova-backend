@@ -31,6 +31,7 @@ import org.pac4j.oauth.client.TwitterClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,6 +41,7 @@ import org.springframework.security.cas.web.CasAuthenticationEntryPoint;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.token.Sha512DigestUtils;
@@ -62,8 +64,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Handles authentication specific requests.
@@ -102,6 +106,13 @@ public class LoginController extends AbstractController {
 	@Value("${security.ldap.image:}") private String ldapImage;
 	@Value("${security.ldap.order}") private int ldapOrder;
 
+	@Value("${security.ldap2.enabled:false}") private boolean ldap2Enabled;
+	@Value("${security.ldap2.allowed-roles:speaker,student}") private String[] ldap2Roles;
+	@Value("${security.ldap2.title:LDAP}") private String ldap2Title;
+	@Value("${security.ldap2.login-dialog-path:}") private String ldap2Dialog;
+	@Value("${security.ldap2.image:}") private String ldap2Image;
+	@Value("${security.ldap2.order:0}") private int ldap2Order;
+
 	@Value("${security.cas.enabled}") private boolean casEnabled;
 	@Value("${security.cas.allowed-roles:speaker,student}") private String[] casRoles;
 	@Value("${security.cas.title:CAS}") private String casTitle;
@@ -139,6 +150,10 @@ public class LoginController extends AbstractController {
 	private LdapAuthenticationProvider ldapAuthenticationProvider;
 
 	@Autowired(required = false)
+	@Qualifier("ldap2AuthenticationProvider")
+	private LdapAuthenticationProvider ldap2AuthenticationProvider;
+
+	@Autowired(required = false)
 	private CasAuthenticationEntryPoint casEntryPoint;
 
 	@Autowired
@@ -153,6 +168,14 @@ public class LoginController extends AbstractController {
 	private void init() {
 		if ("".equals(apiPath)) {
 			apiPath = servletContext.getContextPath();
+		}
+		if (ldap2Enabled) {
+			if (ldap2Dialog.isEmpty()) {
+				ldap2Dialog = ldapDialog;
+			}
+			if (ldap2Image.isEmpty()) {
+				ldap2Image = ldapImage;
+			}
 		}
 	}
 
@@ -193,13 +216,14 @@ public class LoginController extends AbstractController {
 			userService.increaseFailedLoginCount(addr);
 			response.setStatus(HttpStatus.UNAUTHORIZED.value());
 		} else if (ldapEnabled && "ldap".equals(type)) {
+			Collection<GrantedAuthority> authorities = getAuthorities(ldapRoles);
 			if (!"".equals(username) && !"".equals(password)) {
 				org.springframework.security.core.userdetails.User user =
 						new org.springframework.security.core.userdetails.User(
-							username, password, true, true, true, true, this.getAuthorities()
+							username, password, true, true, true, true, authorities
 						);
 
-				Authentication token = new UsernamePasswordAuthenticationToken(user, password, getAuthorities());
+				Authentication token = new UsernamePasswordAuthenticationToken(user, password, authorities);
 				try {
 					Authentication auth = ldapAuthenticationProvider.authenticate(token);
 					if (auth.isAuthenticated()) {
@@ -218,9 +242,35 @@ public class LoginController extends AbstractController {
 				userService.increaseFailedLoginCount(addr);
 				response.setStatus(HttpStatus.UNAUTHORIZED.value());
 			}
+		} else if (ldap2Enabled && "ldap2".equals(type)) {
+			Collection<GrantedAuthority> authorities = getAuthorities(ldap2Roles);
+			if (!"".equals(username) && !"".equals(password)) {
+				org.springframework.security.core.userdetails.User user =
+						new org.springframework.security.core.userdetails.User(
+								username, password, true, true, true, true, authorities
+						);
+
+				Authentication token = new UsernamePasswordAuthenticationToken(user, password, authorities);
+				try {
+					Authentication auth = ldap2AuthenticationProvider.authenticate(token);
+					if (auth.isAuthenticated()) {
+						SecurityContextHolder.getContext().setAuthentication(auth);
+						request.getSession(true).setAttribute(
+								HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+								SecurityContextHolder.getContext());
+
+						return;
+					}
+					logger.info("LDAP authentication failed.");
+				} catch (AuthenticationException e) {
+					logger.info("LDAP authentication failed.", e);
+				}
+
+				userService.increaseFailedLoginCount(addr);
+				response.setStatus(HttpStatus.UNAUTHORIZED.value());
+			}
 		} else if (guestEnabled && "guest".equals(type)) {
-			List<GrantedAuthority> authorities = new ArrayList<>();
-			authorities.add(new SimpleGrantedAuthority("ROLE_GUEST"));
+			Collection<GrantedAuthority> authorities = getAuthorities(guestRoles);
 			if (username == null || !username.startsWith("Guest") || username.length() != MAX_USERNAME_LENGTH) {
 				username = "Guest" + Sha512DigestUtils.shaHex(request.getSession().getId()).substring(0, MAX_GUESTHASH_LENGTH);
 			}
@@ -376,6 +426,18 @@ public class LoginController extends AbstractController {
 			services.add(sdesc);
 		}
 
+		if (ldap2Enabled && !"".equals(ldap2Dialog)) {
+			ServiceDescription sdesc = new ServiceDescription(
+					"ldap",
+					ldap2Title,
+					customizationPath + "/" + ldap2Dialog + "?redirect={0}",
+					ldap2Roles,
+					ldap2Image
+			);
+			sdesc.setOrder(ldap2Order);
+			services.add(sdesc);
+		}
+
 		if (casEnabled) {
 			ServiceDescription sdesc = new ServiceDescription(
 				"cas",
@@ -423,10 +485,12 @@ public class LoginController extends AbstractController {
 		return services;
 	}
 
-	private Collection<GrantedAuthority> getAuthorities() {
-		List<GrantedAuthority> authList = new ArrayList<>();
-		authList.add(new SimpleGrantedAuthority("ROLE_USER"));
-		return authList;
+	private Collection<GrantedAuthority> getAuthorities(String[] roles) {
+		if (Arrays.asList(roles).contains("speaker")) {
+			return AuthorityUtils.createAuthorityList("ROLE_USER", "ROLE_SESSION_CREATOR");
+		} else {
+			return AuthorityUtils.createAuthorityList("ROLE_USER");
+		}
 	}
 
 	@RequestMapping(value = { "/test/me" }, method = RequestMethod.GET)
