@@ -19,12 +19,17 @@ package de.thm.arsnova.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Replaces the user ID provided by the authenticating user with the one that is part of LDAP object. This is necessary
@@ -34,6 +39,8 @@ public class CustomLdapUserDetailsMapper extends LdapUserDetailsMapper {
 	private static final Logger logger = LoggerFactory.getLogger(CustomLdapUserDetailsMapper.class);
 
 	private String userIdAttr;
+
+	@Value("${security.ldap.allowed-roles:speaker,student}") private String[] ldapAuthRoles;
 
 	public CustomLdapUserDetailsMapper(String ldapUserIdAttr) {
 		this.userIdAttr = ldapUserIdAttr;
@@ -46,6 +53,14 @@ public class CustomLdapUserDetailsMapper extends LdapUserDetailsMapper {
 			logger.warn("LDAP attribute {} not set. Falling back to lowercased user provided username.", userIdAttr);
 			ldapUsername = username.toLowerCase();
 		}
+
+		final List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+		grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+		grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_DB_USER"));
+		if (Arrays.asList(ldapAuthRoles).contains("speaker")) {
+			grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_SESSION_CREATOR"));
+		}
+		logger.debug("LDAP user roles: {}", authorities);
 
 		 return super.mapUserFromContext(ctx, ldapUsername, authorities);
 	}
