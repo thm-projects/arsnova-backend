@@ -19,7 +19,6 @@ package de.thm.arsnova.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -27,7 +26,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -39,11 +37,11 @@ public class CustomLdapUserDetailsMapper extends LdapUserDetailsMapper {
 	private static final Logger logger = LoggerFactory.getLogger(CustomLdapUserDetailsMapper.class);
 
 	private String userIdAttr;
+	private boolean addSpeakerRole;
 
-	@Value("${security.ldap.allowed-roles:speaker,student}") private String[] ldapAuthRoles;
-
-	public CustomLdapUserDetailsMapper(String ldapUserIdAttr) {
+	public CustomLdapUserDetailsMapper(String ldapUserIdAttr, boolean addSpeakerRole) {
 		this.userIdAttr = ldapUserIdAttr;
+		this.addSpeakerRole = addSpeakerRole;
 	}
 
 	public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
@@ -57,11 +55,11 @@ public class CustomLdapUserDetailsMapper extends LdapUserDetailsMapper {
 		final List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 		grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
 		grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_DB_USER"));
-		if (Arrays.asList(ldapAuthRoles).contains("speaker")) {
+		if (addSpeakerRole) {
 			grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_SESSION_CREATOR"));
 		}
-		logger.debug("LDAP user roles: {}", authorities);
+		logger.debug("LDAP user roles: {}", grantedAuthorities);
 
-		 return super.mapUserFromContext(ctx, ldapUsername, authorities);
+		 return super.mapUserFromContext(ctx, ldapUsername, grantedAuthorities);
 	}
 }

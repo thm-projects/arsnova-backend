@@ -79,6 +79,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -108,6 +109,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Value("${security.ldap.user-search-filter:}") private String ldapSearchFilter;
 	@Value("${security.ldap.manager-user-dn:}") private String ldapManagerUserDn;
 	@Value("${security.ldap.manager-password:}") private String ldapManagerPassword;
+	@Value("${security.ldap.allowed-roles:speaker,student}") private String[] ldapAllowedRoles;
 
 	@Value("${security.ldap2.enabled:false}") private boolean ldap2Enabled;
 	@Value("${security.ldap2.url:}") private String ldap2Url;
@@ -117,6 +119,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Value("${security.ldap2.user-search-filter:}") private String ldap2SearchFilter;
 	@Value("${security.ldap2.manager-user-dn:}") private String ldap2ManagerUserDn;
 	@Value("${security.ldap2.manager-password:}") private String ldap2ManagerPassword;
+	@Value("${security.ldap.allowed-roles:speaker,student}") private String[] ldap2AllowedRoles;
 
 	@Value("${security.cas.enabled}") private boolean casEnabled;
 	@Value("${security.cas-server-url}") private String casUrl;
@@ -338,7 +341,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	public LdapUserDetailsMapper customLdapUserDetailsMapper() {
 		logger.debug("ldap2UserIdAttr: {}", ldapUserIdAttr);
 
-		return new CustomLdapUserDetailsMapper(ldapUserIdAttr);
+		return new CustomLdapUserDetailsMapper(ldapUserIdAttr, Arrays.asList(ldapAllowedRoles).contains("speaker"));
 	}
 
 	@Bean
@@ -387,7 +390,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	public LdapUserDetailsMapper customLdap2UserDetailsMapper() {
 		logger.debug("ldap2UserIdAttr: {}", ldap2UserIdAttr);
 
-		return new CustomLdapUserDetailsMapper(ldap2UserIdAttr);
+		return new CustomLdapUserDetailsMapper(ldap2UserIdAttr, Arrays.asList(ldap2AllowedRoles).contains("speaker"));
 	}
 
 	// CAS Authentication Configuration
