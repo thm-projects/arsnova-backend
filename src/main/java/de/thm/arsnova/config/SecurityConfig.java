@@ -25,6 +25,7 @@ import de.thm.arsnova.security.ApplicationPermissionEvaluator;
 import de.thm.arsnova.security.CustomLdapUserDetailsMapper;
 import de.thm.arsnova.security.DbUserDetailsService;
 import org.jasig.cas.client.validation.Cas20ProxyTicketValidator;
+import org.opensaml.saml.common.xml.SAMLConstants;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.config.Config;
 import org.pac4j.oauth.client.FacebookClient;
@@ -32,6 +33,8 @@ import org.pac4j.oauth.client.TwitterClient;
 import org.pac4j.oidc.client.GoogleOidcClient;
 import org.pac4j.oidc.client.OidcClient;
 import org.pac4j.oidc.config.OidcConfiguration;
+import org.pac4j.saml.client.SAML2Client;
+import org.pac4j.saml.config.SAML2Configuration;
 import org.pac4j.springframework.security.web.CallbackFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +82,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -90,6 +94,7 @@ import java.util.List;
 @Profile("!test")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	private static final String OAUTH_CALLBACK_PATH_SUFFIX = "/auth/oauth_callback";
+	private static final String SAML2_CALLBACK_PATH_SUFFIX = "/auth/callback/saml2";
 	private static final String OIDC_DISCOVERY_PATH_SUFFIX = "/.well-known/openid-configuration";
 	private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
@@ -112,6 +117,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Value("${security.cas.enabled}") private boolean casEnabled;
 	@Value("${security.cas-server-url}") private String casUrl;
+
+	@Value("${security.saml.enabled}") private boolean samlEnabled;
+	@Value("${security.saml.idp.meta-file}") private String samlIdpMetaFile;
+	@Value("${security.saml.keystore.file}") private String samlKeystoreFile;
+	@Value("${security.saml.keystore.store-password}") private String samlKeystorePassword;
+	@Value("${security.saml.keystore.key-alias}") private String samlKeystoreKeyAlias;
+	@Value("${security.saml.keystore.key-password}") private String samlKeystoreKeyPassword;
 
 	@Value("${security.oidc.enabled}") private boolean oidcEnabled;
 	@Value("${security.oidc.issuer}") private String oidcIssuer;
@@ -149,8 +161,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			http.addFilter(casLogoutFilter());
 		}
 
+		CallbackFilter callbackFilter;
+		if (samlEnabled) {
+			callbackFilter = new CallbackFilter(saml2Config());
+			callbackFilter.setSuffix(SAML2_CALLBACK_PATH_SUFFIX);
+			callbackFilter.setDefaultUrl(rootUrl + apiPath + "/");
+			http.addFilterAfter(callbackFilter, CasAuthenticationFilter.class);
+		}
+
 		if (oidcEnabled || facebookEnabled || googleEnabled || twitterEnabled) {
-			CallbackFilter callbackFilter = new CallbackFilter(oauthConfig());
+			callbackFilter = new CallbackFilter(oauthConfig());
 			callbackFilter.setSuffix(OAUTH_CALLBACK_PATH_SUFFIX);
 			callbackFilter.setDefaultUrl(rootUrl + apiPath + "/");
 			http.addFilterAfter(callbackFilter, CasAuthenticationFilter.class);
@@ -171,6 +191,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		if (casEnabled) {
 			providers.add("cas");
 			auth.authenticationProvider(casAuthenticationProvider());
+		}
+		if (samlEnabled) {
+			providers.add("saml");
 		}
 		if (oidcEnabled) {
 			providers.add("oidc");
@@ -379,6 +402,31 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		handler.setDefaultTarget(rootUrl);
 
 		return handler;
+	}
+
+	// SAML2 Authentication Configuration
+
+	@Bean
+	public SAML2Client saml2Client() {
+		SAML2Configuration config = new SAML2Configuration(
+				"file:" + samlKeystoreFile,
+				samlKeystorePassword,
+				samlKeystoreKeyPassword,
+				"file:" + samlIdpMetaFile
+		);
+		config.setKeystoreAlias(samlKeystoreKeyAlias);
+		config.setAuthnRequestBindingType(SAMLConstants.SAML2_REDIRECT_BINDING_URI);
+		config.setAuthnRequestSigned(true);
+
+		return new SAML2Client(config);
+	}
+
+	@Bean
+	public Config saml2Config() {
+		List<Client> clients = new ArrayList<>();
+		clients.add(saml2Client());
+
+		return new Config(rootUrl + apiPath + SAML2_CALLBACK_PATH_SUFFIX, clients);
 	}
 
 	// OAuth Authentication Configuration
