@@ -27,6 +27,7 @@ import org.pac4j.oauth.client.FacebookClient;
 import org.pac4j.oauth.client.TwitterClient;
 import org.pac4j.oidc.client.GoogleOidcClient;
 import org.pac4j.oidc.client.OidcClient;
+import org.pac4j.saml.client.SAML2Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,6 +108,12 @@ public class LoginController extends AbstractController {
 	@Value("${security.cas.image:}") private String casImage;
 	@Value("${security.cas.order}") private int casOrder;
 
+	@Value("${security.saml.enabled}") private boolean samlEnabled;
+	@Value("${security.saml.allowed-roles:speaker,student}") private String[] samlRoles;
+	@Value("${security.saml.title:SAML}") private String samlTitle;
+	@Value("${security.saml.image:}") private String samlImage;
+	@Value("${security.saml.order}") private int samlOrder;
+
 	@Value("${security.oidc.enabled}") private boolean oidcEnabled;
 	@Value("${security.oidc.allowed-roles:speaker,student}") private String[] oidcRoles;
 	@Value("${security.oidc.title:OIDC}") private String oidcTitle;
@@ -130,6 +137,9 @@ public class LoginController extends AbstractController {
 
 	@Autowired(required = false)
 	private DaoAuthenticationProvider daoProvider;
+
+	@Autowired(required = false)
+	private SAML2Client saml2Client;
 
 	@Autowired(required = false)
 	private OidcClient oidcClient;
@@ -286,6 +296,11 @@ public class LoginController extends AbstractController {
 
 		if (casEnabled && "cas".equals(type)) {
 			casEntryPoint.commence(request, response, null);
+		} else if (samlEnabled) {
+
+			result = new RedirectView(
+					saml2Client.getRedirectAction(new J2EContext(request, response)).getLocation());
+
 		} else if (oidcEnabled && "oidc".equals(type)) {
 			result = new RedirectView(
 					oidcClient.getRedirectAction(new J2EContext(request, response)).getLocation());
@@ -388,6 +403,18 @@ public class LoginController extends AbstractController {
 				MessageFormat.format(dialogUrl, "cas"),
 				casRoles,
 				casImage
+			);
+			sdesc.setOrder(casOrder);
+			services.add(sdesc);
+		}
+
+		if (samlEnabled) {
+			ServiceDescription sdesc = new ServiceDescription(
+					"saml",
+					samlTitle,
+					MessageFormat.format(dialogUrl, "saml"),
+					samlRoles,
+					samlImage
 			);
 			sdesc.setOrder(casOrder);
 			services.add(sdesc);

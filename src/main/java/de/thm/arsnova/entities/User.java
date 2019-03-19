@@ -23,6 +23,7 @@ import org.pac4j.oauth.profile.facebook.FacebookProfile;
 import org.pac4j.oauth.profile.twitter.TwitterProfile;
 import org.pac4j.oidc.profile.OidcProfile;
 import org.pac4j.oidc.profile.google.GoogleOidcProfile;
+import org.pac4j.saml.profile.SAML2Profile;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
@@ -37,6 +38,7 @@ public class User implements Serializable {
 	public static final String FACEBOOK = "facebook";
 	public static final String THM = "thm";
 	public static final String LDAP = "ldap";
+	public static final String SAML = "saml";
 	public static final String OIDC = "oidc";
 	public static final String ARSNOVA = "arsnova";
 	public static final String ANONYMOUS = "anonymous";
@@ -61,6 +63,11 @@ public class User implements Serializable {
 			setUsername(User.OIDC + ":" + profile.getId());
 			setType(User.OIDC);
 		}
+	}
+
+	public User(SAML2Profile profile) {
+		setUsername(User.SAML + ":" + profile.getId());
+		setType(User.SAML);
 	}
 
 	public User(TwitterProfile profile) {

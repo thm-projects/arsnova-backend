@@ -142,6 +142,19 @@ security.cas.image=
 security.cas.order=0
 security.cas-server-url=https://example.com/cas
 
+# SAML authentication
+#
+security.saml.enabled=false
+security.saml.allowed-roles=speaker,student
+security.saml.title=SAML
+security.saml.image=
+security.saml.order=0
+security.saml.idp.meta-file=/etc/arsnova/saml-idp.xml
+security.saml.keystore.file=/etc/arsnova/arsnova.jks
+security.saml.keystore.store-password=arsnova
+security.saml.keystore.key-alias=saml
+security.saml.keystore.key-password=arsnova
+
 # OpenID Connect authentication
 #
 security.oidc.enabled=false
