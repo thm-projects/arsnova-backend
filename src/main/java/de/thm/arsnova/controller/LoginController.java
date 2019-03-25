@@ -19,6 +19,7 @@ package de.thm.arsnova.controller;
 
 import de.thm.arsnova.entities.ServiceDescription;
 import de.thm.arsnova.entities.User;
+import de.thm.arsnova.exceptions.NotImplementedException;
 import de.thm.arsnova.services.IUserService;
 import de.thm.arsnova.services.UserSessionService;
 import org.pac4j.core.context.J2EContext;
@@ -466,6 +467,16 @@ public class LoginController extends AbstractController {
 		}
 
 		return services;
+	}
+
+	@RequestMapping(value = { "/auth/saml/sp-metadata.xml" }, method = RequestMethod.GET)
+	@ResponseBody
+	public String samlSpMetadata() throws IOException {
+		if (saml2Client == null) {
+			throw new NotImplementedException("SAML authentication is disabled.");
+		}
+
+		return saml2Client.getServiceProviderMetadataResolver().getMetadata();
 	}
 
 	private Collection<GrantedAuthority> getAuthorities(final boolean admin) {
