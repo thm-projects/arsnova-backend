@@ -163,10 +163,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		CallbackFilter callbackFilter;
 		if (samlEnabled) {
-			callbackFilter = new CallbackFilter(saml2Config());
+			Config saml2Config = saml2Config();
+			callbackFilter = new CallbackFilter(saml2Config);
 			callbackFilter.setSuffix(SAML2_CALLBACK_PATH_SUFFIX);
 			callbackFilter.setDefaultUrl(rootUrl + apiPath + "/");
 			http.addFilterAfter(callbackFilter, CasAuthenticationFilter.class);
+
+			/* Initialize the client manually for the metadata endpoint */
+			saml2Config.getClients().findClient(SAML2Client.class).init();
 		}
 
 		if (oidcEnabled || facebookEnabled || googleEnabled || twitterEnabled) {
