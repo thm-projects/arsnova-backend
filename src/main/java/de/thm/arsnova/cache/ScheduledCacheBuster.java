@@ -17,7 +17,11 @@
  */
 package de.thm.arsnova.cache;
 
+import de.thm.arsnova.connector.client.ConnectorClientImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +37,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ScheduledCacheBuster {
+	private static final Logger logger = LoggerFactory.getLogger(ScheduledCacheBuster.class);
 
 	@CacheEvict(value = "sessions", allEntries = true)
 	@Scheduled(initialDelay = 1000 * 25, fixedRate = 1000 * 60 * 60 * 6)
@@ -65,5 +70,13 @@ public class ScheduledCacheBuster {
 	@CacheEvict(value = "learningprogress", allEntries = true)
 	@Scheduled(initialDelay = 1000 * 200, fixedRate = 1000 * 60 * 15)
 	private void clearLearningProgressCache() { }
+
+	@Caching(evict = {
+			@CacheEvict(value = ConnectorClientImpl.COURSES_CACHE, allEntries = true),
+			@CacheEvict(value = ConnectorClientImpl.MEMBERSHIPS_CACHE, allEntries = true)})
+	@Scheduled(initialDelay = 1000 * 225, fixedRate = 1000 * 60 * 1)
+	private void clearLmsCache() {
+		logger.warn("clearLmsCache");
+	}
 
 }
