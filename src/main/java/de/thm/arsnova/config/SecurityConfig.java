@@ -94,7 +94,7 @@ import java.util.List;
 @Profile("!test")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	private static final String OAUTH_CALLBACK_PATH_SUFFIX = "/auth/oauth_callback";
-	private static final String SAML2_CALLBACK_PATH_SUFFIX = "/auth/saml2_callback";
+	private static final String SAML2_CALLBACK_PATH_SUFFIX = "/auth/callback/saml2";
 	private static final String OIDC_DISCOVERY_PATH_SUFFIX = "/.well-known/openid-configuration";
 	private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
