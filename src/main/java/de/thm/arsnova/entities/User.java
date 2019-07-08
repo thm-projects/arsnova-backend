@@ -18,12 +18,18 @@
 package de.thm.arsnova.entities;
 
 import de.thm.arsnova.services.UserSessionService;
+
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
 import org.pac4j.oauth.profile.twitter.TwitterProfile;
 import org.pac4j.oidc.profile.OidcProfile;
 import org.pac4j.oidc.profile.google.GoogleOidcProfile;
 import org.pac4j.saml.profile.SAML2Profile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.style.ToStringCreator;
+import org.springframework.core.style.ToStringStyler;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
@@ -33,6 +39,8 @@ import java.io.Serializable;
  * Represents a user.
  */
 public class User implements Serializable {
+	private static final Logger logger = LoggerFactory.getLogger(User.class);
+
 	public static final String GOOGLE = "google";
 	public static final String TWITTER = "twitter";
 	public static final String FACEBOOK = "facebook";
@@ -66,8 +74,9 @@ public class User implements Serializable {
 	}
 
 	public User(SAML2Profile profile) {
-		setUsername(User.SAML + ":" + profile.getId());
+		setUsername(User.SAML + ":" + profile.getUsername());
 		setType(User.SAML);
+		logger.info(new ToStringCreator(profile).append("SAML profile attrs", profile.getAttributes()).toString());
 	}
 
 	public User(TwitterProfile profile) {
