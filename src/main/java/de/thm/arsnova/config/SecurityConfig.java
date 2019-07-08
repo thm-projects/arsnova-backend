@@ -420,6 +420,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		);
 		config.setKeystoreAlias(samlKeystoreKeyAlias);
 		config.setAuthnRequestBindingType(SAMLConstants.SAML2_REDIRECT_BINDING_URI);
+		config.setAuthnRequestSigned(true);
 
 		return new SAML2Client(config);
 	}
