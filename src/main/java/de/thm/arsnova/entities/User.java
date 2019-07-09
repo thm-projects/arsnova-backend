@@ -19,6 +19,7 @@ package de.thm.arsnova.entities;
 
 import de.thm.arsnova.services.UserSessionService;
 
+import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
@@ -74,9 +75,10 @@ public class User implements Serializable {
 	}
 
 	public User(SAML2Profile profile, final String uidAttr) {
-		setUsername(User.SAML + ":" + profile.getAttribute(uidAttr));
+		final String uid = ((List) profile.getAttribute(uidAttr)).get(0).toString();
+		setUsername(User.SAML + ":" + uid);
 		setType(User.SAML);
-		logger.info(new ToStringCreator(profile).append("SAML profile attrs",
+		logger.debug(new ToStringCreator(profile).append("SAML profile attrs",
 				profile.getAttributes()).append("uid", profile.getAttribute(uidAttr)).toString());
 	}
 
