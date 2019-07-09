@@ -150,10 +150,15 @@ security.saml.title=SAML
 security.saml.image=
 security.saml.order=0
 security.saml.idp.meta-file=/etc/arsnova/saml-idp.xml
+security.saml.sp.meta-file=
+security.saml.sp.entity-id=
 security.saml.keystore.file=/etc/arsnova/arsnova.jks
 security.saml.keystore.store-password=arsnova
 security.saml.keystore.key-alias=saml
 security.saml.keystore.key-password=arsnova
+security.saml.uid-attr=uid
+security.saml.assertion-consumer-service-index=0
+security.saml.max-authentication-lifetime=3600
 
 # OpenID Connect authentication
 #

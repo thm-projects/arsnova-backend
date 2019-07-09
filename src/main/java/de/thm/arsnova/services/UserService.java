@@ -150,6 +150,9 @@ public class UserService implements IUserService {
 	@Value("${security.admin-accounts}")
 	private String[] adminAccounts;
 
+	@Value("${security.saml.uid-attr}")
+	private String uidAttr;
+
 	@Value("${user.cleanup-days:0}")
 	private int userCleanupThresholdDays;
 
@@ -260,7 +263,7 @@ public class UserService implements IUserService {
 		final Pac4jAuthenticationToken token = (Pac4jAuthenticationToken) authentication;
 		if (token.getProfile() instanceof SAML2Profile) {
 			final SAML2Profile profile = (SAML2Profile) token.getProfile();
-			user = new User(profile);
+			user = new User(profile, uidAttr);
 		} else if (token.getProfile() instanceof OidcProfile) {
 			final OidcProfile profile = (OidcProfile) token.getProfile();
 			user = new User(profile);
