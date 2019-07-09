@@ -73,10 +73,11 @@ public class User implements Serializable {
 		}
 	}
 
-	public User(SAML2Profile profile) {
-		setUsername(User.SAML + ":" + profile.getUsername());
+	public User(SAML2Profile profile, final String uidAttr) {
+		setUsername(User.SAML + ":" + profile.getAttribute(uidAttr));
 		setType(User.SAML);
-		logger.info(new ToStringCreator(profile).append("SAML profile attrs", profile.getAttributes()).toString());
+		logger.info(new ToStringCreator(profile).append("SAML profile attrs",
+				profile.getAttributes()).append("uid", profile.getAttribute(uidAttr)).toString());
 	}
 
 	public User(TwitterProfile profile) {

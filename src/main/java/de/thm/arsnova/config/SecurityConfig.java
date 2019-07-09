@@ -120,10 +120,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Value("${security.saml.enabled}") private boolean samlEnabled;
 	@Value("${security.saml.idp.meta-file}") private String samlIdpMetaFile;
+	@Value("${security.saml.sp.meta-file}") private String samlSpMetaFile;
+	@Value("${security.saml.sp.entity-id}") private String samlSpEntityId;
 	@Value("${security.saml.keystore.file}") private String samlKeystoreFile;
 	@Value("${security.saml.keystore.store-password}") private String samlKeystorePassword;
 	@Value("${security.saml.keystore.key-alias}") private String samlKeystoreKeyAlias;
 	@Value("${security.saml.keystore.key-password}") private String samlKeystoreKeyPassword;
+	@Value("${security.saml.max-authentication-lifetime}") private int maxAuthenticationLifetime;
 
 	@Value("${security.oidc.enabled}") private boolean oidcEnabled;
 	@Value("${security.oidc.issuer}") private String oidcIssuer;
@@ -419,8 +422,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				"file:" + samlIdpMetaFile
 		);
 		config.setKeystoreAlias(samlKeystoreKeyAlias);
+		if (!samlSpMetaFile.isEmpty()) {
+			config.setServiceProviderMetadataPath("file:" + samlSpMetaFile);
+		}
 		config.setAuthnRequestBindingType(SAMLConstants.SAML2_REDIRECT_BINDING_URI);
 		config.setAuthnRequestSigned(true);
+		if (!samlSpEntityId.isEmpty()) {
+			config.setServiceProviderEntityId(samlSpEntityId);
+		}
+		config.setMaximumAuthenticationLifetime(maxAuthenticationLifetime);
 
 		return new SAML2Client(config);
 	}
