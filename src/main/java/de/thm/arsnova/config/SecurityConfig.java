@@ -122,6 +122,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Value("${security.saml.idp.meta-file}") private String samlIdpMetaFile;
 	@Value("${security.saml.sp.meta-file}") private String samlSpMetaFile;
 	@Value("${security.saml.sp.entity-id}") private String samlSpEntityId;
+	@Value("${security.saml.assertion-consumer-service-index}") private int samlAcsIndex;
 	@Value("${security.saml.keystore.file}") private String samlKeystoreFile;
 	@Value("${security.saml.keystore.store-password}") private String samlKeystorePassword;
 	@Value("${security.saml.keystore.key-alias}") private String samlKeystoreKeyAlias;
@@ -430,6 +431,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		if (!samlSpEntityId.isEmpty()) {
 			config.setServiceProviderEntityId(samlSpEntityId);
 		}
+		config.setAssertionConsumerServiceIndex(samlAcsIndex);
 		config.setMaximumAuthenticationLifetime(maxAuthenticationLifetime);
 
 		return new SAML2Client(config);
