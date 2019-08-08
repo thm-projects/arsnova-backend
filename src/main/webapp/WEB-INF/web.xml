@@ -80,6 +80,7 @@
 		<mime-type>application/json</mime-type>
 	</mime-mapping>
 
+	<!--
 	<error-page>
 		<error-code>401</error-code>
 		<location>/error/401.html</location>
@@ -96,6 +97,7 @@
 		<error-code>500</error-code>
 		<location>/error/500.html</location>
 	</error-page>
+	-->
 
 	<session-config>
 		<tracking-mode>COOKIE</tracking-mode>
