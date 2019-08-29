@@ -4,18 +4,33 @@
 
 Before you can get started developing ARSnova you need to make sure the following software is installed to build ARSnova Backend:
 
-* Java 8 JDK
+* OpenJDK 8 or 11 Development Kit
 * Apache Maven 3.x
 
 And additionally if you want to run ARSnova locally:
 
-* Apache CouchDB 1.x
-* Python 2.7
-* [ARSnova Setup Tool](https://github.com/thm-projects/arsnova-setuptool)
+* Apache CouchDB 2.x (see [Installation Guide](installation.md#couchdb))
 
 Next, you need to setup an ARSnova configuration file.
-Create a copy of [arsnova.properties.example](../../main/resources/arsnova.properties.example) at `/etc/arsnova/arsnova.properties`.
-Afterwards, initialize the database by running the `tool.py` python script from the Setup Tool.
+Create a new file [application.yml] at a location of your choosing outside of the repository:
+
+```yaml
+arsnova:
+  system:
+    root-url: http://localhost:8080
+    api:
+      expose-error-messages: true
+    couchdb:
+      host: localhost
+      db-name: arsnova3
+      username: <couchdb admin user>
+      password: <couchdb admin password>
+  security:
+    jwt:
+      secret: <random string for encryption/signing>
+```
+
+Have a look at [defaults.yml](../../main/resources/config/defaults.yml) for an overview of all available configuration settings and their defaults.
 
 
 ## Building
@@ -33,12 +48,15 @@ You can create a web archive (`.war` file) by running a single command:
 ARSnova builds are setup up to automatically download the Java Servlet container Jetty for development.
 Run the following command to download the dependencies, and startup the backend with Jetty:
 
-	$ mvn jetty:run
+	$ mvn jetty:run -D arsnova.config-dir=</path/to/config>
 
 After a few seconds the ARSnova API will be accessible at <http://localhost:8080/>.
 
-You can adjust the amount of debug logging by changing the log levels in [log4j-dev.properties](../../main/resources/log4j-dev.properties).
-Additionally, you can enable exception messages in API responses by setting the boolean property `api.expose-error-messages` in `arsnova.properties`.
+You can customize the logging behavior for the development environment by appending the following parameters:
+
+* -D arsnova.log.level=TRACE
+* -D arsnova.log.level.spring=DEBUG
+* -D arsnova.log.exeptions=5
 
 
 ## Continuous Integration
@@ -46,7 +64,7 @@ Additionally, you can enable exception messages in API responses by setting the 
 Our code repositories are located on a [GitLab server](https://git.thm.de/arsnova) for internal development.
 They are automatically mirrored to [GitHub](https://github.com/thm-projects) on code changes.
 
-Apart from mirroring GitLab CI triggers various jobs to:
+Apart from mirroring GitLab CI runs various jobs to:
 
 * check the code quality (static code analysis with SonarQube)
 * build a web archive

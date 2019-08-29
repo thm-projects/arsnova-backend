@@ -1,6 +1,6 @@
 # Caching
 
-Please read about Spring Framework's [Cache Abstraction](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html) first.
+Please read about Spring Framework's [Cache Abstraction](https://docs.spring.io/spring/docs/5.1.x/spring-framework-reference/integration.html#cache) first.
 
 
 ## What should get cached?
