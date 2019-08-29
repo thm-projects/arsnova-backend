@@ -5,47 +5,40 @@ Please read about Spring Framework's [Cache Abstraction](https://docs.spring.io/
 
 ## What should get cached?
 
-The short answer: All data that is written once and read multiple times. In ARSnova, there is an inherent `1:n` relationship between teachers and students. This makes everything the teacher creates a candidate for caching. But there are more opportunities like students' answers which are mostly written once and cannot be changed afterwards. Be aware though that in this case, once a new answer comes in, the cache has to be invalidated. With many students answering questions at the same time, the effects of caching go away since the cache is invalidated all the time.
+The short answer: All data that is rarely written but frequently read.
+Caching is already handled for all entities as long as they are accessed through the `DefaultEntityServiceImpl`.
+Additional, specialized caching can be helpful for aliases (e.g. mapping a room's `shortId` the `id`) or find query results.
 
-While caching provides an opportunity to greatly speed up the execution of various requests, it does come with a price: You have to think of all cases were the cached data might become stale.
-
-
-## How to design your objects
-
-Caching should only be used with domain objects where the `hashCode` and `equals` methods are provided. This makes it easy to update or delete cache entries. As you recall from the documentation, cache keys are based on a method's parameters. If you use base objects like `String` or `Integer`, you will have to manually provide a key through the Spring Expression Language (SpEL). As you can see from the following example, such keys can become quite complicated:
-
-```java
-@Cacheable(value = "notverycacheable", key = "#p0.concat('-').concat(#p1).concat('-').concat(#p2)")
-public ResultObject notVeryCacheable(String roomId, String questionVariant, String subject) { ... }
-```
-
-Therefore, you should always work with domain objects like `Room`, `Content`, or even your own, newly defined objects:
-
-```java
-@Cacheable("verycacheable")
-public ResultObject veryCacheable(Room room) { ... }
-```
-
-Be aware though that you need to carefully choose the fields which should be part of the `equals`/`hashCode`: In case of CouchDB, for example, it is not a good idea to use a document's `rev` field. Every time a document is updated, it gets a new `rev` which will make it _unequal_ to all its previous versions, making cache updates using `@CachePut` impossible.
-
-[ARSnova's event system](event-system.md) provides a useful way for fine-grained cache updates because the events contain all relevant domain objects. If you need to clear or update a cache based on one of ARSnova's events, you can use the `CacheBuster` class to add your annotations.
+While caching provides an opportunity to greatly speed up the execution of various requests, it does come with a price:
+You have to think of all cases were the cached data might become stale.
 
 
-## Issues
+## Generating cache keys
 
-Caching requires the use of Spring Proxies. This means that methods invoked using `this` ignore all caching annotations! They only work across object boundaries because Spring is only able to intercept calls if they are going through a Spring Proxy. This could only be solved using AOP, but we have no intention to support this in the near future.
+By default, the cache key is generated from all method parameters.
+If some of the parameters should not affect cache handling, the key parameter of the caching annotation has to be set.
+For reference types which are used as part of the key you have to make sure that `hashCode` and `equals` methods are overriden.
+Be aware though that you need to carefully choose the fields which should be part of the `equals`/`hashCode`:
+In case of CouchDB, for example, it is not a good idea to use a document's `rev` field.
+Every time a document is updated, it gets a new `rev` which will make it _unequal_ to all its previous versions,
+making cache updates using `@CachePut` impossible.
 
-There is one exception: Since the `databaseDao` bean needs to call several methods on the same object, we implemented a workaround that allows access to the bean's proxy. When `getDatabaseDao()` is called within the bean, its proxy is returned that should be used instead of `this`.
 
-One last word of caution: Your code should not rely on the cache's existence, and you should keep expensive calls to a minimum: Do not hit the database multiple times even though you think further calls are served by the cache.
+## Event-based cache updates
+
+[ARSnova's event system](event-system.md) provides a useful way for fine-grained cache updates because the events contain all relevant domain objects.
+If you need to update a cache based on one of ARSnova's events, you can combine `@EventListener` with one of the caching annotations.
 
 
-## List of cache entries and associated keys
+## List of caches
 
 Here is a list of all caches, their keys, and a short description.
 
+_Note_: With the introduction of the generic `entity` cache many of the other entity related caches became obsolete and will be removed in the future.
+
 Cache name | Key | Description
 -----------|-----|------------
+`entity` | entity type + `-` + id | Contains all entity objects handled by `DefaultEntityServiceImpl`.
 `contentlists`| database id of room | Contains all contents for the specified room irrespective of their variant.
 `lecturecontentlists` | database id of room | Contains all "lecture" variant contents for the specified room.
 `preparationcontentlists` | database id of room | Contains all "preparation" variant contents for the specified room.
