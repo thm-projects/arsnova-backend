@@ -115,9 +115,9 @@ A new streamlined REST API is developed while the legacy API is still supported 
 	* Implement a `/<entity type>/find` endpoint
 	* Provide statistics with non-aggregated combinations of answer choices
 	* Implement customizable content groups
-			* They replace predefined content variants
-			* Relations are stored as part of a room
-			* They support auto sort (v2 behavior) and user defined ordering
+		* They replace predefined content variants
+		* Relations are stored as part of a room
+		* They support auto sort (v2 behavior) and user defined ordering
 * Implement API live migration layer v2 <-> v3
 	* v2 controllers convert between v2 and v3 entity types
 	* Internally (service and persistence layer) only the v3 entity type is used
