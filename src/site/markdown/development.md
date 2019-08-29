@@ -66,5 +66,6 @@ The current build status for the master branch:
 
 * [Roadmap](development/roadmap.md)
 * [Domain](development/domain.md)
+* [Layers](development/layers.md)
 * [Caching](development/caching.md)
 * [Event System](development/event-system.md)
