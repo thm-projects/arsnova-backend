@@ -161,10 +161,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		http.headers()
 			.addHeaderWriter(new HstsHeaderWriter(false));
 
+		/*
 		if (casEnabled) {
 			http.addFilter(casAuthenticationFilter());
 			http.addFilter(casLogoutFilter());
 		}
+		*/
 
 		CallbackFilter callbackFilter;
 		if (samlEnabled) {
@@ -386,6 +388,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return entryPoint;
 	}
 
+	/*
 	@Bean
 	public CasAuthenticationFilter casAuthenticationFilter() throws Exception {
 		CasAuthenticationFilter filter = new CasAuthenticationFilter();
@@ -395,6 +398,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		return filter;
 	}
+	*/
 
 	@Bean
 	public LogoutFilter casLogoutFilter() {
