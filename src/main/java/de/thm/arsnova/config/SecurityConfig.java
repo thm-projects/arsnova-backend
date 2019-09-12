@@ -73,6 +73,7 @@ import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
@@ -171,7 +172,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			callbackFilter = new CallbackFilter(saml2Config);
 			callbackFilter.setSuffix(SAML2_CALLBACK_PATH_SUFFIX);
 			callbackFilter.setDefaultUrl(rootUrl + apiPath + "/");
-			http.addFilterAfter(callbackFilter, CasAuthenticationFilter.class);
+			http.addFilterAfter(callbackFilter, UsernamePasswordAuthenticationFilter.class);
 
 			/* Initialize the client manually for the metadata endpoint */
 			saml2Config.getClients().findClient(SAML2Client.class).init();
@@ -181,7 +182,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			callbackFilter = new CallbackFilter(oauthConfig());
 			callbackFilter.setSuffix(OAUTH_CALLBACK_PATH_SUFFIX);
 			callbackFilter.setDefaultUrl(rootUrl + apiPath + "/");
-			http.addFilterAfter(callbackFilter, CasAuthenticationFilter.class);
+			http.addFilterAfter(callbackFilter, UsernamePasswordAuthenticationFilter.class);
 		}
 	}
 
