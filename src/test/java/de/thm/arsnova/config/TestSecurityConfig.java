@@ -94,10 +94,12 @@ public class TestSecurityConfig extends SecurityConfig {
 		return null;
 	}
 
+	/*
 	@Override
 	public CasAuthenticationFilter casAuthenticationFilter() {
 		return null;
 	}
+	*/
 
 	@Override
 	public FacebookClient facebookClient() {
