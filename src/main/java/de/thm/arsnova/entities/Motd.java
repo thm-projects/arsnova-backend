@@ -21,6 +21,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * This class represents a message of the day.
@@ -133,7 +134,7 @@ public class Motd {
 		final int prim = 37;
 
 		int result = 42;
-		return prim * result + this.motdkey.hashCode();
+		return prim * result + (motdkey == null ? 0 : motdkey.hashCode());
 	}
 
 	@Override
@@ -142,6 +143,6 @@ public class Motd {
 			return false;
 		}
 		Motd other = (Motd) obj;
-		return this.getMotdkey().equals(other.getMotdkey());
+		return Objects.equals(motdkey, other.motdkey);
 	}
 }
