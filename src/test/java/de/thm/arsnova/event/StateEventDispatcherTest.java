@@ -31,6 +31,8 @@ import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.util.function.Function;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -63,6 +65,7 @@ public class StateEventDispatcherTest {
 	public static final String SETTINGS_PROPERTY_NAME = "settings";
 	public static final String STATE_PROPERTY_NAME = "state";
 	private static final String QUESTIONS_ENABLED_PROPERTY_NAME = "questionsEnabled";
+	private static final String FEEDBACK_LOCKED_PROPERTY_NAME = "feedbackLocked";
 	private static final String VISIBLE_PROPERTY_NAME = "visible";
 	private static final String TEST_USER_ID = "TestUser";
 	private static final String TEST_ROOM_ID = "TestRoom";
@@ -96,7 +99,7 @@ public class StateEventDispatcherTest {
 	public void testDispatchRoomSettingsStateEvent() throws IOException {
 		final ObjectMapper objectMapper = jackson2HttpMessageConverter.getObjectMapper();
 		final DefaultEntityServiceImpl<Room> entityService = new DefaultEntityServiceImpl<>(
-				Room.class, roomRepository, objectMapper, validator);
+			Room.class, roomRepository, objectMapper, validator);
 		entityService.setApplicationEventPublisher(eventPublisher);
 
 		when(roomRepository.save(any(Room.class))).then(returnsFirstArg());
@@ -105,6 +108,26 @@ public class StateEventDispatcherTest {
 		prefillRoomFields(room);
 		room.setOwnerId(TEST_USER_ID);
 		entityService.patch(room, Collections.singletonMap(QUESTIONS_ENABLED_PROPERTY_NAME, false), Room::getSettings);
+		assertEquals(1, eventListenerConfig.getRoomSettingsStateChangeEvents().size());
+		assertEquals(SETTINGS_PROPERTY_NAME, eventListenerConfig.getRoomSettingsStateChangeEvents().get(0).getStateName());
+	}
+
+	@Test
+	@WithMockUser(TEST_USER_ID)
+	public void testDispatchRoomSettingsStateEventViaAPIOnLockedFeedback() throws IOException {
+		final ObjectMapper objectMapper = jackson2HttpMessageConverter.getObjectMapper();
+		final DefaultEntityServiceImpl<Room> entityService = new DefaultEntityServiceImpl<>(
+			Room.class, roomRepository, objectMapper, validator);
+		entityService.setApplicationEventPublisher(eventPublisher);
+
+		when(roomRepository.save(any(Room.class))).then(returnsFirstArg());
+
+		final Room room = new Room();
+		prefillRoomFields(room);
+		room.getSettings().setFeedbackLocked(false);
+		room.setOwnerId(TEST_USER_ID);
+		entityService.patch(room, Collections.singletonMap(
+			SETTINGS_PROPERTY_NAME, Collections.singletonMap(FEEDBACK_LOCKED_PROPERTY_NAME, true)), Function.identity());
 		assertEquals(1, eventListenerConfig.getRoomSettingsStateChangeEvents().size());
 		assertEquals(SETTINGS_PROPERTY_NAME, eventListenerConfig.getRoomSettingsStateChangeEvents().get(0).getStateName());
 	}
