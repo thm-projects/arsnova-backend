@@ -718,6 +718,7 @@ public class UserServiceImpl extends DefaultEntityServiceImpl<UserProfile> imple
 			throw e;
 		} catch (final MessagingException e) {
 			logger.warn("Mail \"{}\" could not be sent because of MessagingException.", subject, e);
+			throw e;
 		}
 	}
 
