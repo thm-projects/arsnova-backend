@@ -42,6 +42,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.cas.authentication.CasAuthenticationToken;
@@ -51,6 +52,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.keygen.BytesKeyGenerator;
 import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -153,7 +155,7 @@ public class UserService implements IUserService {
 	private int userCleanupThresholdDays;
 
 	private Pattern mailPattern;
-	private BytesKeyGenerator keygen;
+	private StringKeyGenerator keygen;
 	private BCryptPasswordEncoder encoder;
 	private ConcurrentHashMap<String, Byte> loginTries;
 	private Set<String> loginBans;
@@ -161,6 +163,10 @@ public class UserService implements IUserService {
 	{
 		loginTries = new ConcurrentHashMap<>();
 		loginBans = Collections.synchronizedSet(new HashSet<String>());
+
+		if (null == keygen) {
+			keygen = KeyGenerators.string();
+		}
 	}
 
 	@Autowired
@@ -384,10 +390,6 @@ public class UserService implements IUserService {
 	public DbUser createDbUser(String username, String password) {
 		String lcUsername = username.toLowerCase();
 
-		if (null == keygen) {
-			keygen = KeyGenerators.secureRandom(32);
-		}
-
 		if (null == mailPattern) {
 			parseMailAddressPattern();
 		}
@@ -604,5 +606,19 @@ public class UserService implements IUserService {
 		} catch (MailException | MessagingException e) {
 			logger.warn("Mail \"{}\" could not be sent.", subject, e);
 		}
+	}
+
+	@PreAuthorize("isAuthenticated()")
+	public String createApiToken(final String username) {
+		if (!getCurrentUser().isAdmin() && !getCurrentUser().getUsername().equals(username)) {
+			throw new ForbiddenException(String.format("User '%s' is not allowed to create an API token for user '%s'",
+					getCurrentUser().getUsername(), username));
+		}
+
+		logger.info("Generating API token for user {}.", username);
+		final String token = keygen.generateKey() + keygen.generateKey();
+		databaseDao.createOrUpdateApiToken(username, token);
+
+		return token;
 	}
 }

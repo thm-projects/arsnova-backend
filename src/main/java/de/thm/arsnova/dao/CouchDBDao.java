@@ -3013,4 +3013,58 @@ public class CouchDBDao implements IDatabaseDao, ApplicationEventPublisherAware 
 		}
 	}
 
+	@Override
+	public Document getApiTokenDocumentByToken(final String token) {
+		final NovaView view = new NovaView("api_token/by_token");
+		view.setKey(token);
+		view.setIncludeDocs(true);
+		final List<Document> result = getDatabase().view(view).getResults();
+		if (result.isEmpty()) {
+			return null;
+		} else {
+			return new Document(result.get(0).getJSONObject().getJSONObject("doc"));
+		}
+	}
+
+	@Override
+	public Document getApiTokenDocumentByUsername(final String username) {
+		final NovaView view = new NovaView("api_token/by_username");
+		view.setKey(username);
+		view.setIncludeDocs(true);
+		final List<Document> result = getDatabase().view(view).getResults();
+		if (result.isEmpty()) {
+			return null;
+		} else {
+			return new Document(result.get(0).getJSONObject().getJSONObject("doc"));
+		}
+	}
+
+	@Override
+	public void createOrUpdateApiToken(final String username, final String token) {
+		final Document existingDoc = getApiTokenDocumentByUsername(username);
+
+		try {
+			Document doc = new Document();
+
+			if (existingDoc != null) {
+				doc.setId(existingDoc.getId());
+				doc.setRev(existingDoc.getRev());
+			}
+
+			doc.put("type", "api_token");
+			doc.put("username", username);
+			doc.put("token", token);
+			doc.put("creation", new Date().getTime());
+
+			database.saveDocument(doc);
+		} catch (IOException e) {
+			logger.error("Could not save API token for user {}.", username, e);
+		}
+	}
+
+	@Override
+	public String getUsernameByToken(final String token) {
+		final Document doc = this.getApiTokenDocumentByToken(token);
+		return doc != null ? doc.getString("username") : null;
+	}
 }

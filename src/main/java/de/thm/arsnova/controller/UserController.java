@@ -25,19 +25,20 @@ import de.thm.arsnova.services.IUserService;
 import de.thm.arsnova.services.UserSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Handles requests related to ARSnova's own user registration and login process.
  */
-@Controller
+@RestController
 @RequestMapping("/user")
 public class UserController extends AbstractController {
 	@Autowired
@@ -115,6 +116,23 @@ public class UserController extends AbstractController {
 			}
 		} else {
 			userService.initiatePasswordReset(username);
+		}
+	}
+
+	@PostMapping("/{username}/apitoken")
+	public ApiTokenEntity createToken(@PathVariable final String username) {
+		return new ApiTokenEntity(userService.createApiToken(username));
+	}
+
+	public static class ApiTokenEntity {
+		private String token;
+
+		public ApiTokenEntity(final String token) {
+			this.token = token;
+		}
+
+		public String getToken() {
+			return token;
 		}
 	}
 }

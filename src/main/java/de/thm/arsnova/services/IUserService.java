@@ -76,4 +76,6 @@ public interface IUserService {
 	void anonymizeUser(LoggedIn username);
 
 	LoggedIn getLoggedInFromUser(User user);
+
+	String createApiToken(String username);
 }

@@ -22,6 +22,7 @@ import de.thm.arsnova.entities.*;
 import de.thm.arsnova.entities.transport.ImportExportSession;
 import net.particify.arsnova.connector.model.Course;
 
+import com.fourspaces.couchdb.Document;
 import java.util.List;
 import java.util.Map;
 
@@ -307,4 +308,12 @@ public interface IDatabaseDao {
 	void updateLoggedIn(LoggedIn l);
 
 	void bulkDeleteInterposedQuestionsForSessionAndUser(String sessionId, String username);
+
+	Document getApiTokenDocumentByToken(String token);
+
+	Document getApiTokenDocumentByUsername(String username);
+
+	void createOrUpdateApiToken(String username, String token);
+
+	String getUsernameByToken(String token);
 }

@@ -24,6 +24,7 @@ import de.thm.arsnova.exceptions.NoContentException;
 import de.thm.arsnova.exceptions.NotFoundException;
 import net.particify.arsnova.connector.model.Course;
 
+import com.fourspaces.couchdb.Document;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -794,6 +795,29 @@ public class StubDatabaseDao implements IDatabaseDao {
 
 	@Override
 	public List<Answer> getUserAnswersForSession(String username, String sessionId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Document getApiTokenDocumentByToken(final String token) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Document getApiTokenDocumentByUsername(final String username) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void createOrUpdateApiToken(final String username, final String token) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public String getUsernameByToken(final String token) {
 		// TODO Auto-generated method stub
 		return null;
 	}
