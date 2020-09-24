@@ -32,6 +32,7 @@ import org.springframework.messaging.handler.annotation.support.DefaultMessageHa
 import de.thm.arsnova.config.properties.MessageBrokerProperties;
 import de.thm.arsnova.event.AmqpEventDispatcher;
 import de.thm.arsnova.event.RoomAccessEventDispatcher;
+import de.thm.arsnova.event.RoomOwnerEventDispatcher;
 import de.thm.arsnova.websocket.handler.FeedbackHandler;
 
 @Configuration
@@ -128,6 +129,7 @@ public class RabbitConfig {
 		declarables.add(new Queue(FeedbackHandler.CREATE_FEEDBACK_COMMAND_QUEUE_NAME, true));
 		declarables.add(new Queue(FeedbackHandler.CREATE_FEEDBACK_RESET_COMMAND_QUEUE_NAME, true));
 		declarables.add(new Queue(FeedbackHandler.QUERY_FEEDBACK_COMMAND_QUEUE_NAME, true));
+		declarables.add(new Queue(RoomOwnerEventDispatcher.ROOM_OWNER_CHANGED_QUEUE, true));
 
 		return new Declarables(declarables);
 	}
