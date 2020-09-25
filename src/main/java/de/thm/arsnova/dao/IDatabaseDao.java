@@ -316,4 +316,6 @@ public interface IDatabaseDao {
 	void createOrUpdateApiToken(String username, String token);
 
 	String getUsernameByToken(String token);
+
+	List<Document> getAllSessionData(String sessionId, String type);
 }

@@ -33,6 +33,8 @@ import de.thm.arsnova.events.NewAnswerEvent;
 import de.thm.arsnova.exceptions.NotFoundException;
 import de.thm.arsnova.services.ISessionService;
 import net.particify.arsnova.connector.model.Course;
+
+import java.util.stream.Collectors;
 import net.sf.ezmorph.Morpher;
 import net.sf.ezmorph.MorpherRegistry;
 import net.sf.ezmorph.bean.BeanMorpher;
@@ -3066,5 +3068,21 @@ public class CouchDBDao implements IDatabaseDao, ApplicationEventPublisherAware 
 	public String getUsernameByToken(final String token) {
 		final Document doc = this.getApiTokenDocumentByToken(token);
 		return doc != null ? doc.getString("username") : null;
+	}
+
+	@Override
+	public List<Document> getAllSessionData(final String sessionId, final String type) {
+		final NovaView view = new NovaView("all/by_sessionid_type");
+		if (type != null) {
+			view.setKey(sessionId, type);
+		} else {
+			view.setStartKeyArray(sessionId);
+			view.setEndKeyArray(sessionId, "{}");
+		}
+		view.setIncludeDocs(true);
+
+		return getDatabase().view(view).getResults().stream()
+				.map(doc -> new Document(doc.getJSONObject("doc")))
+				.collect(Collectors.toList());
 	}
 }
