@@ -18,11 +18,14 @@
 package de.thm.arsnova.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 import java.util.List;
+
+import de.thm.arsnova.entities.views.ExportView;
 
 /**
  * Represents an ARSnova session.
@@ -110,6 +113,7 @@ public class Session implements Serializable {
 	}
 
 	@ApiModelProperty(required = true, value = "the name")
+	@JsonView(ExportView.class)
 	public String getName() {
 		return name;
 	}
@@ -128,6 +132,7 @@ public class Session implements Serializable {
 	}
 
 	@ApiModelProperty(required = true, value = "the keyword")
+	@JsonView(ExportView.class)
 	public String getKeyword() {
 		return keyword;
 	}
@@ -168,6 +173,7 @@ public class Session implements Serializable {
 	}
 
 	@ApiModelProperty(required = true, value = "the couchDB ID")
+	@JsonView(ExportView.class)
 	public String get_id() {
 		return _id;
 	}

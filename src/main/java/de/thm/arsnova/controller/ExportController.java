@@ -17,6 +17,7 @@
  */
 package de.thm.arsnova.controller;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import de.thm.arsnova.entities.Session;
+import de.thm.arsnova.entities.views.ExportView;
 import de.thm.arsnova.services.ExportService;
 
 @RestController
@@ -41,5 +44,12 @@ public class ExportController extends AbstractController {
 			@RequestParam(required = false) final String type,
 			@RequestParam final String token) {
 		return exportService.export(sessionId, type, token);
+	}
+
+	@PostMapping("/available-sessions")
+	@JsonView(ExportView.class)
+	public List<Session> listSessions(
+			@RequestParam final String token) {
+		return exportService.listSessions(token);
 	}
 }

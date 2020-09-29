@@ -29,6 +29,7 @@ import org.springframework.security.crypto.codec.Hex;
 import org.springframework.stereotype.Service;
 
 import de.thm.arsnova.dao.IDatabaseDao;
+import de.thm.arsnova.entities.Session;
 import de.thm.arsnova.exceptions.UnauthorizedException;
 
 @Service
@@ -69,6 +70,16 @@ public class ExportServiceImpl implements ExportService {
 				});
 
 		return exportResult;
+	}
+
+	@Override
+	public List<Session> listSessions(final String token) {
+		final String username = databaseDao.getUsernameByToken(token);
+		if (username == null) {
+			throw new UnauthorizedException("Invalid API token");
+		}
+
+		return databaseDao.getSessionsForUsername(username, 0, 0);
 	}
 
 	private String generatedScopedAnonymizedId(final String scope, final String id) {

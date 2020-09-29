@@ -20,6 +20,9 @@ package de.thm.arsnova.services;
 import java.util.List;
 import java.util.Map;
 
+import de.thm.arsnova.entities.Session;
+
 public interface ExportService {
 	List<? extends Map> export(String sessionId, String type, String token);
+	List<Session> listSessions(String token);
 }
