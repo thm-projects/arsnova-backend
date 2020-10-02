@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonView;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import de.thm.arsnova.entities.Session;
@@ -32,6 +32,32 @@ import de.thm.arsnova.services.ExportService;
 @RestController
 @RequestMapping("/export")
 public class ExportController extends AbstractController {
+	static class TokenRequestEntity {
+		private String token;
+
+		public void setToken(final String token) {
+			this.token = token;
+		}
+	}
+
+	static class ExportSessionRequestEntity {
+		private String sessionId;
+		private String type;
+		private String token;
+
+		public void setSessionId(final String sessionId) {
+			this.sessionId = sessionId;
+		}
+
+		public void setType(final String type) {
+			this.type = type;
+		}
+
+		public void setToken(final String token) {
+			this.token = token;
+		}
+	}
+
 	private final ExportService exportService;
 
 	public ExportController(final ExportService exportService) {
@@ -40,16 +66,14 @@ public class ExportController extends AbstractController {
 
 	@PostMapping("/session-data")
 	public List<? extends Map> export(
-			@RequestParam final String sessionId,
-			@RequestParam(required = false) final String type,
-			@RequestParam final String token) {
-		return exportService.export(sessionId, type, token);
+			@RequestBody ExportSessionRequestEntity entity) {
+		return exportService.export(entity.sessionId, entity.type, entity.token);
 	}
 
 	@PostMapping("/available-sessions")
 	@JsonView(ExportView.class)
 	public List<Session> listSessions(
-			@RequestParam final String token) {
-		return exportService.listSessions(token);
+			@RequestBody TokenRequestEntity entity) {
+		return exportService.listSessions(entity.token);
 	}
 }
