@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.databind.util.Converter;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -317,12 +316,13 @@ public class MangoCouchDbConnector extends StdCouchDbConnector {
 				new StdResponseHandler<T>() {
 					@Override
 					public T success(final HttpResponse hr) throws Exception {
-						final InputStream is = hr.getContent();
-						if (is == null) {
-							logger.warn("HttpResponse has no content.");
+						logger.debug("Response code: {}, content type: {}", hr.getCode(), hr.getContentType());
+						try {
+							return objectMapper.readValue(hr.getContent(), c);
+						} catch (final NullPointerException e) {
+							logger.warn("Parsing of response body as JSON failed.");
 							return null;
 						}
-						return objectMapper.readValue(is, c);
 					}
 				});
 	}
