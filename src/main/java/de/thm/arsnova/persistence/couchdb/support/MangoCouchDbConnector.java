@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.databind.util.Converter;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,10 +37,13 @@ import java.util.List;
 import java.util.Map;
 import org.ektorp.CouchDbInstance;
 import org.ektorp.DbAccessException;
+import org.ektorp.Options;
 import org.ektorp.http.HttpResponse;
 import org.ektorp.http.StdResponseHandler;
+import org.ektorp.http.URI;
 import org.ektorp.impl.ObjectMapperFactory;
 import org.ektorp.impl.StdCouchDbConnector;
+import org.ektorp.util.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -298,6 +302,29 @@ public class MangoCouchDbConnector extends StdCouchDbConnector {
 	public <T> PagedMangoResponse<T> queryForPage(final MangoQuery query, final Class<T> type) {
 		final MangoResponseHandler<T> rh = new MangoResponseHandler<>(type, objectMapper, true);
 		return new PagedMangoResponse<T>(query(query, rh), rh.getBookmark());
+	}
+
+	@Override
+	public <T> T get(final Class<T> c, final String id, final Options options) {
+		Assert.notNull(c, "Class may not be null");
+		assertDocIdHasValue(id);
+		final URI uri = dbURI.append(id);
+		if (options != null && !options.isEmpty()) {
+			uri.params(options.getOptions());
+		}
+
+		return restTemplate.get(uri.toString(),
+				new StdResponseHandler<T>() {
+					@Override
+					public T success(final HttpResponse hr) throws Exception {
+						final InputStream is = hr.getContent();
+						if (is == null) {
+							logger.warn("HttpResponse has no content.");
+							return null;
+						}
+						return objectMapper.readValue(is, c);
+					}
+				});
 	}
 
 	public void createPartialJsonIndex(
