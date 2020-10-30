@@ -206,7 +206,7 @@ public class SessionService implements ISessionService, ApplicationEventPublishe
 				throw new ForbiddenException("User is not session creator.");
 			}
 		}
-		if (connectorClient != null && session.isCourseSession()) {
+		if (connectorClient != null && session.isCourseSession() && !session.isCreator(user)) {
 			final String courseid = session.getCourseId();
 			if (!connectorClient.getMembership(user.getUsername(), courseid).isMember()) {
 				throw new ForbiddenException("User is no course member.");
