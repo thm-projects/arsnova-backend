@@ -318,6 +318,9 @@ public class V2ToV3Migration implements ApplicationEventPublisherAware, Migratio
 				final LoggedIn loggedIn = loggedInList.size() > 0 ? loggedInList.get(0) : null;
 
 				final UserProfile profileV3 = migrator.migrate(userV2, loggedIn, loadMotdList(userV2.getUsername()));
+				if (!profileV3.getLoginId().endsWith(".thm.de")) {
+					continue;
+				}
 				profileV3.setAcknowledgedMotds(migrateMotdIds(profileV3.getAcknowledgedMotds()));
 				profilesV3.add(profileV3);
 			}
@@ -372,6 +375,10 @@ public class V2ToV3Migration implements ApplicationEventPublisherAware, Migratio
 				/* There might be rare cases of duplicate LoggedIn records for a user so add them to the filter list */
 				usernames.add(loggedInV2.getUser());
 				final UserProfile profileV3 = migrator.migrate(null, loggedInV2, loadMotdList(loggedInV2.getUser()));
+				if (profileV3.getAuthProvider() != UserProfile.AuthProvider.CAS
+						&& profileV3.getAuthProvider() != UserProfile.AuthProvider.ARSNOVA_GUEST) {
+					continue;
+				}
 				profileV3.setAcknowledgedMotds(migrateMotdIds(profileV3.getAcknowledgedMotds()));
 				profilesV3.add(profileV3);
 			}
