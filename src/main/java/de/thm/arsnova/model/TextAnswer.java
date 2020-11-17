@@ -48,7 +48,7 @@ public class TextAnswer extends Answer {
 		if (subject != null && !subject.isBlank()) {
 			return subject + ": " + body;
 		} else {
-			return body;
+			return body != null ? body : "Enthaltungen";
 		}
 	}
 
