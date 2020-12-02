@@ -340,15 +340,6 @@ public class ContentServiceImpl extends DefaultEntityServiceImpl<Content> implem
 		return user;
 	}
 
-	/*
-	 * The "internal" suffix means it is called by internal services that have no authentication!
-	 * TODO: Find a better way of doing this...
-	 */
-	@Override
-	public int countFlashcardsForUserInternal(final String roomId) {
-		return contentRepository.findByRoomIdOnlyFlashcardVariantAndActive(roomId).size();
-	}
-
 	@Override
 	@PreAuthorize("isAuthenticated()")
 	public List<String> getUnAnsweredLectureContentIds(final String roomId) {
@@ -418,7 +409,7 @@ public class ContentServiceImpl extends DefaultEntityServiceImpl<Content> implem
 			throw new UnauthorizedException();
 		}
 
-		final List<Content> contents = contentRepository.findByRoomIdAndVariantAndActive(room.getId());
+		final List<Content> contents = contentRepository.findByRoomIdAndActive(room.getId());
 		resetContentsRoundState(room.getId(), contents);
 		final List<String> contentIds = contents.stream().map(Content::getId).collect(Collectors.toList());
 		answerService.delete(answerRepository.findStubsByContentIds(contentIds));
