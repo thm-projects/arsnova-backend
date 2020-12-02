@@ -6,7 +6,7 @@ import java.util.Set;
 import de.thm.arsnova.model.Content;
 
 public interface ContentRepository extends CrudRepository<Content, String> {
-	List<Content> findByRoomIdAndVariantAndActive(Object... keys);
+	List<Content> findByRoomIdAndActive(Object... keys);
 
 	List<Content> findByRoomIdForUsers(String roomId);
 
@@ -21,8 +21,6 @@ public interface ContentRepository extends CrudRepository<Content, String> {
 	Iterable<Content> findStubsByRoomId(String roomId);
 
 	List<String> findUnansweredIdsByRoomIdAndUser(String roomId, String userId);
-
-	List<Content> findByRoomIdOnlyFlashcardVariantAndActive(String roomId);
 
 	List<Content> findByRoomId(String roomId);
 }

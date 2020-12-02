@@ -41,8 +41,6 @@ public interface ContentService extends EntityService<Content> {
 
 	List<String> getUnAnsweredContentIds(String roomId);
 
-	int countFlashcardsForUserInternal(String roomId);
-
 	void deleteAllContents(String roomId);
 
 	void deleteLectureContents(String roomId);

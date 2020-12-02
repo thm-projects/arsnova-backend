@@ -415,8 +415,8 @@ public class ArsnovaSocketioServerImpl implements ArsnovaSocketioServer {
 		client.sendEvent(FEEDBACK_DATA_EVENTNAME, fb.getValues());
 
 		if (settings.isFlashcardsEnabled()) {
-			client.sendEvent(COUNT_FLASHCARDS_EVENTNAME, contentService.countFlashcardsForUserInternal(roomId));
 			/* FIXME: missing implementation */
+			//client.sendEvent(COUNT_FLASHCARDS_EVENTNAME, contentService.countFlashcardsForUserInternal(roomId));
 			//client.sendEvent("flipFlashcards", room.getFlipFlashcards());
 		}
 
@@ -644,9 +644,9 @@ public class ArsnovaSocketioServerImpl implements ArsnovaSocketioServer {
 		broadcastInRoom(roomId, FEATURE_CHANGE_EVENTNAME, toV2Migrator.migrate(settings));
 
 		if (settings.isFlashcardsEnabled()) {
-			broadcastInRoom(roomId, COUNT_FLASHCARDS_EVENTNAME,
-					contentService.countFlashcardsForUserInternal(roomId));
 			/* FIXME: missing implementation */
+			//broadcastInRoom(roomId, COUNT_FLASHCARDS_EVENTNAME,
+			//		contentService.countFlashcardsForUserInternal(roomId));
 			//broadcastInRoom(roomId, "flipFlashcards", event.getEntity().getSettings().isFlipFlashcards());
 		}
 	}
