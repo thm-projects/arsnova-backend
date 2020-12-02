@@ -195,19 +195,6 @@ public class ContentServiceImpl extends DefaultEntityServiceImpl<Content> implem
 	}
 
 	@Override
-	protected void finalizeUpdate(final Content content) {
-		/* TODO: not sure yet how to refactor this code - we need access to the old and new entity
-		if (!oldContent.getState().isVisible() && content.getState().isVisible()) {
-			final UnlockQuestionEvent event = new UnlockQuestionEvent(this, room, content);
-			this.publisher.publishEvent(event);
-		} else if (oldContent.getState().isVisible() && !content.getState().isVisible()) {
-			final LockQuestionEvent event = new LockQuestionEvent(this, room, content);
-			this.publisher.publishEvent(event);
-		}
-		*/
-	}
-
-	@Override
 	protected void prepareDelete(final Content content) {
 		final List<ContentGroup> contentGroups = contentGroupService.getByRoomId(content.getRoomId());
 		for (final ContentGroup contentGroup : contentGroups) {
