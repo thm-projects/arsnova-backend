@@ -64,7 +64,7 @@ public class CouchDbContentRepository extends CouchDbCrudRepository<Content> imp
 
 	@Override
 	public int countByRoomId(final String roomId) {
-		final ViewResult result = db.queryView(createQuery("by_roomid_locked")
+		final ViewResult result = db.queryView(createQuery("by_roomid_active")
 				.startKey(ComplexKey.of(roomId))
 				.endKey(ComplexKey.of(roomId, ComplexKey.emptyObject()))
 				.reduce(true));
@@ -74,7 +74,7 @@ public class CouchDbContentRepository extends CouchDbCrudRepository<Content> imp
 
 	@Override
 	public List<String> findIdsByRoomId(final String roomId) {
-		return collectQuestionIds(db.queryView(createQuery("by_roomid_locked")
+		return collectQuestionIds(db.queryView(createQuery("by_roomid_active")
 				.startKey(ComplexKey.of(roomId))
 				.endKey(ComplexKey.of(roomId, ComplexKey.emptyObject()))
 				.reduce(false)));
@@ -89,7 +89,7 @@ public class CouchDbContentRepository extends CouchDbCrudRepository<Content> imp
 
 	@Override
 	public Iterable<Content> findStubsByRoomId(final String roomId) {
-		return createEntityStubs(db.queryView(createQuery("by_roomid_locked")
+		return createEntityStubs(db.queryView(createQuery("by_roomid_active")
 				.startKey(ComplexKey.of(roomId))
 				.endKey(ComplexKey.of(roomId, ComplexKey.emptyObject()))
 				.reduce(false)));
@@ -128,7 +128,7 @@ public class CouchDbContentRepository extends CouchDbCrudRepository<Content> imp
 		final Object[] endKeys = Arrays.copyOf(keys, keys.length + 1);
 		endKeys[keys.length] = ComplexKey.emptyObject();
 
-		return db.queryView(createQuery("by_roomid_locked")
+		return db.queryView(createQuery("by_roomid_active")
 						.includeDocs(true)
 						.reduce(false)
 						.startKey(ComplexKey.of(keys))
