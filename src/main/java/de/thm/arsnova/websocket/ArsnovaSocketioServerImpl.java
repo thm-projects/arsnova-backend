@@ -47,7 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
 
 import de.thm.arsnova.event.AfterCreationEvent;
 import de.thm.arsnova.event.AfterDeletionEvent;
@@ -76,7 +75,6 @@ import de.thm.arsnova.websocket.message.Room;
 /**
  * Web socket implementation based on Socket.io.
  */
-@Component
 public class ArsnovaSocketioServerImpl implements ArsnovaSocketioServer {
 	private static final String ACTIVE_USER_COUNT_DATA_EVENTNAME = "activeUserCountData";
 	private static final String SET_ROOM_ACTIVE_EVENTNAME = "setSessionActive";
