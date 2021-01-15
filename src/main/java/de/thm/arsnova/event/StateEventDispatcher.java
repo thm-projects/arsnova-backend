@@ -59,7 +59,7 @@ public class StateEventDispatcher implements ApplicationEventPublisherAware {
 	}
 
 	@EventListener
-	public void dispatchContentStateEvent(final AfterFullUpdateEvent<Content> event) {
+	public void dispatchContentStateEvent(final AfterFullUpdateEvent<? extends Content> event) {
 		final Content newContent = event.getEntity();
 		final Content oldContent = event.getOldEntity();
 		final Function<Content, Content.State> f = Content::getState;
@@ -68,7 +68,7 @@ public class StateEventDispatcher implements ApplicationEventPublisherAware {
 	}
 
 	@EventListener
-	public void dispatchContentStateEvent(final AfterPatchEvent<Content> event) {
+	public void dispatchContentStateEvent(final AfterPatchEvent<? extends Content> event) {
 		publishEventIfPropertyChanged(event, Function.identity(), STATE_PROPERTY, STATE_PROPERTY);
 		publishEventIfPropertyChanged(event, Content::getState, null, STATE_PROPERTY);
 	}
