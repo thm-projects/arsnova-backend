@@ -53,6 +53,9 @@ arsnova:
         virtual-host: /
         manage-declarations: true
       published-events:
+        # For entity types which have subclasses the type ID property must be
+        # included (e.g. format for Content and Answer). Otherwise,
+        # serialization will fail with a NullPointerException.
         - entity-type: UserProfile
           event-type: AfterCreation
           included-properties:
@@ -86,6 +89,7 @@ arsnova:
           included-properties:
             - id
             - roomId
+            - format
 
     # Formatting service
     formatting-service:
