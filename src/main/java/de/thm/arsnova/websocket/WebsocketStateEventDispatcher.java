@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import de.thm.arsnova.event.StateChangeEvent;
 import de.thm.arsnova.model.Content;
+import de.thm.arsnova.model.ContentGroup;
 
 @Component
 @Profile("!test")
@@ -31,6 +32,21 @@ public class WebsocketStateEventDispatcher {
 		messagingTemplate.convertAndSend(
 				"amq.topic",
 				roomId + ".content.state.stream",
+				stateEvent
+		);
+	}
+
+	@EventListener
+	public <T> void dispatchContentGroupUpdateEvent(final StateChangeEvent<ContentGroup, T> event) {
+		logger.debug("Dispatching state event for content group: {}", event);
+		final String roomId = event.getEntity().getRoomId();
+		final WebsocketStateChangeEvent<T> stateEvent = new WebsocketStateChangeEvent<>(
+				event.getEntity().getId(),
+				event.getStateName(),
+				event.getNewValue());
+		messagingTemplate.convertAndSend(
+				"amq.topic",
+				roomId + ".contentgroup.state.stream",
 				stateEvent
 		);
 	}

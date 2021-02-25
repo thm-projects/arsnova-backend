@@ -26,6 +26,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import de.thm.arsnova.model.Content;
+import de.thm.arsnova.model.ContentGroup;
 import de.thm.arsnova.model.Entity;
 import de.thm.arsnova.model.Room;
 
@@ -40,6 +41,12 @@ public class StateEventDispatcher implements ApplicationEventPublisherAware {
 	private static final String STATE_PROPERTY = "state";
 	private static final String SETTINGS_PROPERTY = "settings";
 	private static final String CLOSED_PROPERTY = "closed";
+	private static final String PUBLISHED_PROPERTY = "published";
+	private static final String CORRECT_OPTIONS_PUBLISHED_PROPERTY = "correctOptionsPublished";
+	private static final String STATISTICS_PUBLISHED_PROPERTY = "statisticsPublished";
+	private static final String FIRST_PUBLISHED_INDEX_PROPERTY = "firstPublishedIndex";
+	private static final String LAST_PUBLISHED_INDEX_PROPERTY = "lastPublishedIndex";
+
 
 	private ApplicationEventPublisher eventPublisher;
 
@@ -71,6 +78,36 @@ public class StateEventDispatcher implements ApplicationEventPublisherAware {
 	public void dispatchContentStateEvent(final AfterPatchEvent<? extends Content> event) {
 		publishEventIfPropertyChanged(event, Function.identity(), STATE_PROPERTY, STATE_PROPERTY);
 		publishEventIfPropertyChanged(event, Content::getState, null, STATE_PROPERTY);
+	}
+
+	@EventListener
+	public void dispatchContentGroupStateEvent(final AfterFullUpdateEvent<ContentGroup> event) {
+		final ContentGroup newContentGroup = event.getEntity();
+		final ContentGroup oldContentGroup = event.getOldEntity();
+		publishEventIfPropertyChanged(newContentGroup, oldContentGroup,
+				ContentGroup::isPublished, PUBLISHED_PROPERTY);
+		publishEventIfPropertyChanged(newContentGroup, oldContentGroup,
+				ContentGroup::isCorrectOptionsPublished, CORRECT_OPTIONS_PUBLISHED_PROPERTY);
+		publishEventIfPropertyChanged(newContentGroup, oldContentGroup,
+				ContentGroup::isStatisticsPublished, STATISTICS_PUBLISHED_PROPERTY);
+		publishEventIfPropertyChanged(newContentGroup, oldContentGroup,
+				ContentGroup::getFirstPublishedIndex, FIRST_PUBLISHED_INDEX_PROPERTY);
+		publishEventIfPropertyChanged(newContentGroup, oldContentGroup,
+				ContentGroup::getLastPublishedIndex, LAST_PUBLISHED_INDEX_PROPERTY);
+	}
+
+	@EventListener
+	public void dispatchContentGroupStateEvent(final AfterPatchEvent<ContentGroup> event) {
+		publishEventIfPropertyChanged(event, Function.identity(),
+				PUBLISHED_PROPERTY, PUBLISHED_PROPERTY);
+		publishEventIfPropertyChanged(event, Function.identity(),
+				CORRECT_OPTIONS_PUBLISHED_PROPERTY, CORRECT_OPTIONS_PUBLISHED_PROPERTY);
+		publishEventIfPropertyChanged(event, Function.identity(),
+				STATISTICS_PUBLISHED_PROPERTY, STATISTICS_PUBLISHED_PROPERTY);
+		publishEventIfPropertyChanged(event, Function.identity(),
+				FIRST_PUBLISHED_INDEX_PROPERTY, FIRST_PUBLISHED_INDEX_PROPERTY);
+		publishEventIfPropertyChanged(event, Function.identity(),
+				LAST_PUBLISHED_INDEX_PROPERTY, LAST_PUBLISHED_INDEX_PROPERTY);
 	}
 
 	private <E extends Entity, T extends Object> void publishEventIfPropertyChanged(
