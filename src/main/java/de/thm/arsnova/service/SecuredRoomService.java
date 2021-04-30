@@ -71,4 +71,10 @@ public class SecuredRoomService extends AbstractSecuredEntityServiceImpl<Room>
 	public Optional<RoomMembership> requestMembership(final String roomId, final String password) {
 		return roomService.requestMembership(roomId, password);
 	}
+
+	@Override
+	@PreAuthorize("isAuthenticated")
+	public Optional<RoomMembership> requestMembershipByToken(final String roomId, final String token) {
+		return Optional.empty();
+	}
 }

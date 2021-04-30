@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import de.thm.arsnova.config.properties.CouchDbMigrationProperties;
+import de.thm.arsnova.persistence.AccessTokenRepository;
 import de.thm.arsnova.persistence.AnswerRepository;
 import de.thm.arsnova.persistence.ContentGroupRepository;
 import de.thm.arsnova.persistence.ContentRepository;
@@ -65,6 +66,11 @@ public class TestPersistanceConfig {
 	@Bean
 	public AnswerRepository answerRepository() {
 		return Mockito.mock(AnswerRepository.class);
+	}
+
+	@Bean
+	public AccessTokenRepository accessTokenRepository() {
+		return Mockito.mock(AccessTokenRepository.class);
 	}
 
 	@Bean
